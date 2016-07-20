@@ -1,0 +1,72 @@
+.player {
+  overflow: hidden;
+  position: relative;
+  &--paused {
+    .player__control {
+      &--pause {
+        display: none;
+      }
+    }
+  }
+  &--playing {
+    .player__control {
+      &--play {
+        display: none;
+      }
+    }
+  }
+  &:hover {
+    .player__controls {
+      transform: translateY(0);
+    }
+  }
+  canvas {
+    display: block;
+  }
+  &__controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    transition: all .3s;
+    transform: translateY(100%);
+  }
+  &__control {
+    margin-right: 5px;
+    position: relative;
+    float: left;
+    width: 30px;
+    height: 30px;
+    background: rgba(0,0,0,.5);
+    cursor: pointer;
+    &--play {
+      &:before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 10px;
+        border: 10px solid transparent;
+        border-left: 10px solid #fff;
+        border-right: 0;
+      }
+    }
+    &--pause {
+      &:before,
+      &:after {
+        content: '';
+        position: absolute;
+        height: 20px;
+        width: 5px;
+        background: #fff;
+        top: 5px;
+      }
+      &:before {
+        left: 7px;
+      }
+      &:after {
+        right: 7px;
+      }
+    }
+  }
+}

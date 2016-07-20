@@ -1,0 +1,53 @@
+.canvas {
+  position: relative;
+  width: 480px;
+  height: 270px;
+  overflow: hidden;
+  margin: 0 auto;
+  &:hover {
+    .canvas__controls {
+      transform: none;
+    }
+  }
+  &__controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    transition: all .3s;
+    transform: translateY(50px);
+  }
+  &__control {
+    cursor: pointer;
+    float: left;
+    height: 30px;
+    width: 30px;
+    background: rgba(0,0,0,.5);
+    border-radius: 5px;
+    color: #fff;
+    text-align: center;
+    line-height: 30px;
+    font-size: 20px;
+    &:hover {
+      background: rgba(0,0,0,.8);
+    }
+  }
+  &__timeline {
+    position: absolute;
+    bottom: 10px;
+    height: 10px;
+    left: 70px;
+    right: 0;
+    border-radius: 5px;
+    overflow: hidden;
+    &-indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      background: #fff;
+    }
+  }
+}

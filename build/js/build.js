@@ -3,6 +3,7 @@ function Player(elem, options) {
 
     elem.innerHTML = '';
     this.elem = elem;
+    this.paused = true;
     this.subtitled = false;
     this.subtitleCounter = undefined;
     this.subtitleStartTime = undefined;
@@ -150,19 +151,23 @@ Player.prototype.createPlayer = function () {
 
 Player.prototype.createCanvas = function () {
     var canvas = document.createElement('canvas');
-    //var mask = document.createElement('canvas');
+    var mask = document.createElement('canvas');
 
     canvas.width = this.options.width;
     canvas.height = this.options.height;
-    //mask.width = this.options.width;
-    //mask.height = this.options.height;
+    canvas.classList.add('canvas', 'canvas--video');
+    mask.width = this.options.width;
+    mask.height = this.options.height;
+    mask.classList.add('canvas', 'canvas--mask');
 
     this.player.appendChild(canvas);
-    //this.player.appendChild(mask);
+    this.player.appendChild(mask);
     this.context = canvas.getContext('2d');
     this.canvas = canvas;
-    //this.mask = mask;
-    //this.maskContext = mask.getContext('2d');
+    this.mask = mask;
+    this.maskContext = mask.getContext('2d');
+    this.maskContext.strokeStyle = 'rgba(255,255,255,0.3)';
+    this.maskContext.strokeWidth = '2';
 };
 
 Player.prototype.createVideoElement = function () {
@@ -284,6 +289,20 @@ Player.prototype.computeFrame = function () {
         frame.data[i * 4 + 2] = grey;
     }
     this.context.putImageData(frame, 0, 0);
+
+    this.maskContext.clearRect(0, 0, this.options.width, this.options.height);
+    this.maskContext.beginPath();
+    this.maskContext.moveTo(randomInteger(0, this.options.width),randomInteger(0, this.options.height));
+    this.maskContext.lineTo(randomInteger(0, this.options.width),randomInteger(0, this.options.height));
+    this.maskContext.stroke();
+    this.maskContext.closePath();
+
+    function randomInteger(min, max) {
+        var rand = min + Math.random() * (max - min)
+        rand = Math.round(rand);
+        return rand;
+    }
+
 };
 
 Player.prototype.timerCallback = function () {

@@ -17,9 +17,6 @@
       }
     }
   }
-  canvas {
-    display: block;
-  }
   &__controls {
     position: absolute;
     left: 0;
@@ -28,6 +25,7 @@
     padding: 3px;
     overflow: hidden;
     transition: all .3s;
+    z-index: 3;
   }
   &__control {
     margin-right: 5px;

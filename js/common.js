@@ -1,8 +1,12 @@
 function Player(elem, options) {
     var _this = this;
 
+    elem.innerHTML = '';
     this.elem = elem;
     this.subtitled = false;
+    this.subtitleCounter = undefined;
+    this.subtitleStartTime = undefined;
+    this.subtitleEndTime = undefined;
     this.options = Object.assign({}, this.defaultOptions, options);
     this.createVideoElement();
     this.createAudioElement();
@@ -13,8 +17,6 @@ function Player(elem, options) {
         _this.subtitles = _this.parseSubtitles(data);
         _this.currentSubtitle = _this.subtitles[0];
     });
-
-
 };
 
 Player.prototype.defaultOptions = {
@@ -26,6 +28,22 @@ Player.prototype.defaultOptions = {
     audioSource: '../media/audio.ogg',
     videoSource: '../media/video.mp4',
     subtitlesSource: '../media/subtitles.srt'
+};
+
+Player.prototype.startSubtitle = function (time) {
+    var _this = this;
+
+    this.subtitled = true;
+    this.subtitleStartTime = new Date();
+    this.subtitleCounter = setTimeout(function () {
+        if (_this.subtitles.indexOf(_this.currentSubtitle) < _this.subtitles.length - 1) {
+            _this.currentSubtitle = _this.subtitles[_this.subtitles.indexOf(_this.currentSubtitle) + 1];
+        }
+        _this.subtitleStartTime = undefined;
+        _this.subtitleEndTime = undefined;
+        _this.subtitled = false;
+        _this.video.play();
+    }, time);
 };
 
 Player.prototype.destroySound = function () {
@@ -79,11 +97,8 @@ Player.prototype.parseSubtitles = function (data) {
         if (subtitle.length >= 2) {
             var number = subtitle[0];
             var time = subtitle[1].split(' --> ');
-            /*TODO избавиться от багов формата времени (*3600 и *60)*/
-            var timeStartArr = strip(time[0]).split(':');
-            var timeEndArr = strip(time[1]).split(':');
-            var timeStart = parseInt(timeStartArr[0] * 3600) + parseInt(timeStartArr[1] * 60) + timeStartArr[2].replace(/,/, '') / 1000;
-            var timeEnd = parseInt(timeEndArr[0] * 3600) + parseInt(timeEndArr[1] * 60) + timeEndArr[2].replace(/,/, '') / 1000;
+            var timeStart = parseTime(time[0]);
+            var timeEnd = parseTime(time[1]);
             var text = subtitle[2];
             if (subtitle.length > 2) {
                 for (var j = 3; j < subtitle.length; j++) {
@@ -97,6 +112,13 @@ Player.prototype.parseSubtitles = function (data) {
             parsed[i].text = text;
         }
     }
+
+    function parseTime(time) {
+        var parsed = strip(time).split(':');
+
+        return (parseInt(parsed[0] * 3600) + parseInt(parsed[1]) * 60 + parsed[2].replace(',', '') / 1000) * 1000;
+    }
+
     return parsed;
 };
 
@@ -107,6 +129,7 @@ Player.prototype.createPlayer = function () {
     var pause = document.createElement('div');
 
     player.classList.add('player', 'player--paused');
+    player.style.width = this.options.width + 'px';
     controls.classList.add('player__controls');
     play.classList.add('player__control', 'player__control--play');
     pause.classList.add('player__control', 'player__control--pause');
@@ -197,16 +220,16 @@ Player.prototype.reset = function () {
 Player.prototype.setEventListeners = function () {
     var _this = this;
 
-    this.video.addEventListener("play", function () {
+    this.video.addEventListener('play', function () {
         _this.audio.play();
         _this.timerCallback();
     }, false);
 
-    this.video.addEventListener("pause", function () {
+    this.video.addEventListener('pause', function () {
 
     }, false);
 
-    this.video.addEventListener("ended", function () {
+    this.video.addEventListener('ended', function () {
         _this.reset();
     }, false);
 
@@ -220,13 +243,27 @@ Player.prototype.setEventListeners = function () {
 };
 
 Player.prototype.play = function () {
+    if (this.subtitled) {
+        this.startSubtitle(this.subtitleEndTime);
+    } else {
+        this.video.play();
+    }
     this.player.classList.remove('player--paused');
     this.player.classList.add('player--playing');
-    this.video.play();
     this.audio.play();
 };
 
 Player.prototype.pause = function () {
+    if (this.subtitled) {
+        var now = new Date();
+
+        clearTimeout(this.subtitleCounter);
+        this.subtitleCounter = undefined;
+        this.subtitleEndTime = this.currentSubtitle.end -
+                               this.currentSubtitle.start -
+                               (now - this.subtitleStartTime);
+    }
+
     this.player.classList.remove('player--playing');
     this.player.classList.add('player--paused');
     this.video.pause();
@@ -238,7 +275,9 @@ Player.prototype.computeFrame = function () {
     var frame = this.context.getImageData(0, 0, this.options.width, this.options.height);
     var l = frame.data.length / 4;
     for (var i = 0; i < l; i++) {
-        var grey = .2126 * frame.data[i * 4 + 0] + .7152 * frame.data[i * 4 + 1] + 0.0722 * frame.data[i * 4 + 2];
+        var grey = .2126 * frame.data[i * 4 + 0] +
+                   .7152 * frame.data[i * 4 + 1] +
+                   .0722 * frame.data[i * 4 + 2];
 
         frame.data[i * 4 + 0] = grey;
         frame.data[i * 4 + 1] = grey;
@@ -254,7 +293,8 @@ Player.prototype.timerCallback = function () {
         return;
     }
 
-    if (this.video.currentTime >= _this.currentSubtitle.end) {
+    if (this.video.currentTime * 1000 >= _this.currentSubtitle.end
+        && _this.subtitles.indexOf(_this.currentSubtitle) !== _this.subtitles.length - 1) {
         this.subtitled = true;
         this.video.pause();
         this.context.fillStyle = "black";
@@ -268,13 +308,7 @@ Player.prototype.timerCallback = function () {
             this.options.textOffsetTop, this.options.textMaxWidth,
             this.options.textLineHeight
         );
-        setTimeout(function () {
-            _this.subtitled = false;
-            _this.video.play();
-            if (_this.subtitles.indexOf(_this.currentSubtitle) < _this.subtitles.length - 1) {
-                _this.currentSubtitle = _this.subtitles[_this.subtitles.indexOf(_this.currentSubtitle) + 1];
-            }
-        }, (_this.currentSubtitle.end - _this.currentSubtitle.start) * 1000)
+        this.startSubtitle(_this.currentSubtitle.end - _this.currentSubtitle.start);
         return;
     }
     this.computeFrame();
@@ -305,6 +339,29 @@ Player.prototype.printText = function (text, marginLeft, marginTop, maxWidth, li
 
 window.onload = function () {
     var wrapper = document.getElementById('player');
+    var form = document.getElementById('form');
+    var inputs = document.querySelectorAll('input[type="text"]');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var valid = true;
+        var options = {};
+
+        inputs.forEach(function (input) {
+            if (!input.value.length) {
+                input.classList.add('form__input--error');
+                valid = false;
+            } else {
+                options[input.getAttribute('name') + 'Source'] = input.value;
+                input.classList.remove('form__input--error');
+            }
+        });
+
+        if (valid) {
+            var player = new Player(wrapper, options);
+        }
+
+    }, false);
 
     var player = new Player(wrapper, {});
 };

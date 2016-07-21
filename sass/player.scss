@@ -1,6 +1,8 @@
 .player {
+  margin: 30px auto;
   overflow: hidden;
   position: relative;
+  background: #ccc;
   &--paused {
     .player__control {
       &--pause {
@@ -15,11 +17,6 @@
       }
     }
   }
-  &:hover {
-    .player__controls {
-      transform: translateY(0);
-    }
-  }
   canvas {
     display: block;
   }
@@ -28,9 +25,9 @@
     left: 0;
     right: 0;
     bottom: 0;
+    padding: 3px;
     overflow: hidden;
     transition: all .3s;
-    transform: translateY(100%);
   }
   &__control {
     margin-right: 5px;

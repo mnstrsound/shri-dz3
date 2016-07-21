@@ -8,11 +8,11 @@ html
         link(href="https://fonts.googleapis.com/css?family=Oranienbaum&subset=cyrillic,cyrillic-ext", rel="stylesheet")
 
     body
-        #form.form
+    #player
+    form#form.form(action="#", method="")
             h1.form__title
                 |Киноглушитель
             input.form__input(type="text", placeholder="Ссылка на видео", name="video")
             input.form__input(type="text", placeholder="Ссылка на аудио", name="audio")
             input.form__input(type="text", placeholder="Ссылка на субтитры", name="subtitles")
             input#form__submit.form__submit(type="submit", value="Заглушить")
-        #player

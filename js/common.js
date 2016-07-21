@@ -280,13 +280,14 @@ Player.prototype.computeFrame = function () {
     var frame = this.context.getImageData(0, 0, this.options.width, this.options.height);
     var l = frame.data.length / 4;
     for (var i = 0; i < l; i++) {
+        var value = Math.random() + 2;
         var grey = .2126 * frame.data[i * 4 + 0] +
                    .7152 * frame.data[i * 4 + 1] +
                    .0722 * frame.data[i * 4 + 2];
 
-        frame.data[i * 4 + 0] = grey;
-        frame.data[i * 4 + 1] = grey;
-        frame.data[i * 4 + 2] = grey;
+        frame.data[i * 4 + 0] = grey * value;
+        frame.data[i * 4 + 1] = grey * value;
+        frame.data[i * 4 + 2] = grey * value;
     }
     this.context.putImageData(frame, 0, 0);
     this.makeScrapes();

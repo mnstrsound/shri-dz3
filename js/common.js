@@ -289,7 +289,11 @@ Player.prototype.computeFrame = function () {
         frame.data[i * 4 + 2] = grey;
     }
     this.context.putImageData(frame, 0, 0);
+    this.makeScrapes();
 
+};
+
+Player.prototype.makeScrapes = function () {
     this.maskContext.clearRect(0, 0, this.options.width, this.options.height);
     this.maskContext.beginPath();
     this.maskContext.moveTo(randomInteger(0, this.options.width),randomInteger(0, this.options.height));
@@ -302,7 +306,6 @@ Player.prototype.computeFrame = function () {
         rand = Math.round(rand);
         return rand;
     }
-
 };
 
 Player.prototype.timerCallback = function () {
